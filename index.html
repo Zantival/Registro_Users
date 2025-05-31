@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Usuarios</title>
+     <script src="fronted/scriptusu.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -102,21 +103,7 @@
 
     <div class="mensaje" id="mensaje"></div>
 
-    <script src="scriptusu.js"></script>
-    <script>
-        document.getElementById("formularioUsuario").addEventListener("submit", guardar);
-
-        function listar(event) {
-            event.preventDefault();
-            const dni = document.getElementById("dniBuscar").value;
-            if(dni) {
-                // Aquí iría la lógica para buscar un usuario por DNI
-                console.log("Buscando usuario con DNI: " + dni);
-                // Puedes agregar aquí el código para hacer la búsqueda real.
-            } else {
-                document.getElementById("mensaje").textContent = "Por favor, ingresa un DNI para buscar.";
-            }
-        }
-    </script>
+   
+    
 </body>
 </html>

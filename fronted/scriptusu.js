@@ -1,3 +1,4 @@
+// Función para guardar usuario
 function guardar(event) {
     event.preventDefault();
 
@@ -9,7 +10,7 @@ function guardar(event) {
         dni: document.getElementById("dni").value,
     };
 
-    fetch("http://localhost:3000/usuario/guardar", {
+    fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", {
         method: "POST",
         body: JSON.stringify(datos),
         headers: {
@@ -17,25 +18,36 @@ function guardar(event) {
         },
     })
     .then(response => response.json())
-    .then(data => alert(data.message))
+    .then(data => {
+        alert(data.message);
+        document.getElementById("formularioUsuario").reset(); // Limpia el formulario
+    })
     .catch(error => console.error("Error:", error));
 }
 
+// Función para buscar usuario por DNI desde campo "dniBuscar"
 function listar(event) {
     event.preventDefault();
 
-    let id = document.getElementById("dni").value;
+    let id = document.getElementById("dniBuscar").value;
 
-    fetch(`http://localhost:3000/usuario/detalle?iden=${id}`)
-        .then(response => response.json())
+    fetch(`http://localhost:3001/usuario/detalle?iden=${id}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Usuario no encontrado");
+            }
+            return response.json();
+        })
         .then(data => {
             document.getElementById("nombre").value = data.nombre || "";
             document.getElementById("apellido").value = data.apellido || "";
             document.getElementById("correo").value = data.correo || "";
             document.getElementById("contrasena").value = data.contraseña || "";
+            document.getElementById("dni").value = data.dni || "";
+            document.getElementById("mensaje").textContent = "";
         })
         .catch(error => {
             console.error("Error:", error);
-            alert("No se encontró el usuario");
+            document.getElementById("mensaje").textContent = "No se encontró el usuario";
         });
 }
