@@ -10,7 +10,7 @@ function guardar(event) {
         dni: document.getElementById("dni").value,
     };
 
-    fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", {
+    fetch("https://registrousers.netlify.app/.netlify/functions/guardar", {
         method: "POST",
         body: JSON.stringify(datos),
         headers: {
@@ -31,7 +31,7 @@ function listar(event) {
 
     let id = document.getElementById("dniBuscar").value;
 
-    fetch(`http://localhost:3001/usuario/detalle?iden=${id}`)
+    fetch("https://registrousers.netlify.app/.netlify/functions/buscar")
         .then(response => {
             if (!response.ok) {
                 throw new Error("Usuario no encontrado");
