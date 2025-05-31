@@ -31,7 +31,7 @@ function listar(event) {
 
     let id = document.getElementById("dniBuscar").value;
 
-    fetch("https://registrousers.netlify.app/.netlify/functions/buscar")
+    fetch(`https://registrousers.netlify.app/.netlify/functions/buscar?id=${id}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error("Usuario no encontrado");
