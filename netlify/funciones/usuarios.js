@@ -1,27 +1,18 @@
 // netlify/funciones/usuarios.js
-
-// Importar Firebase Admin SDK
-// La ruta es '../../backend/modelo/firebaseAdmin.js' asumiendo:
-// - usuarios.js está en 'netlify/funciones'
-// - firebaseAdmin.js está en 'backend/modelo'
-// Entonces, ../ sube a 'netlify', otro ../ sube a la raíz del proyecto,
-// luego 'backend/modelo/firebaseAdmin.js'
-const admin = require('../../backend/modelo/firebaseAdmin.js'); //
-const db = admin.firestore(); //
+const admin = require('../../backend/modelo/firebaseAdmin.js');
+const db = admin.firestore();
 
 exports.handler = async (event, context) => {
     console.log('🚀 Función iniciada');
     console.log('🔍 Evento completo:', JSON.stringify(event, null, 2));
 
-    // Configurar CORS
     const headers = {
-        'Access-Control-Allow-Origin': '*', // Permite a cualquier origen acceder
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Content-Type': 'application/json'
     };
 
-    // Manejar preflight OPTIONS (solicitudes CORS previas)
     if (event.httpMethod === 'OPTIONS') {
         console.log('📋 Manejando preflight OPTIONS');
         return {
@@ -33,17 +24,19 @@ exports.handler = async (event, context) => {
 
     try {
         console.log('🔍 Método HTTP:', event.httpMethod);
-        console.log('🔍 Path:', event.path); // <-- **Verificar la ruta de la solicitud**
+        console.log('🔍 Path completo:', event.path); // Muestra la ruta completa
         console.log('🔍 Body recibido:', event.body);
 
-        // Extraer la "sub-ruta" después de /.netlify/functions/usuarios
-        // Ejemplo: si event.path es '/.netlify/functions/usuarios/guardar',
-        // baseRoute será '/guardar'
-        const baseRoute = event.path.replace('/.netlify/functions/usuarios', '');
-        console.log('🔍 Sub-ruta detectada:', baseRoute);
+        // Determinar la "acción" basada en la ruta
+        // Si el path es '/.netlify/functions/usuarios/guardar', queremos 'guardar'
+        // Si es '/.netlify/functions/usuarios/detalle', queremos 'detalle'
+        // Extraemos la última parte de la URL
+        const pathParts = event.path.split('/');
+        const action = pathParts[pathParts.length - 1]; // Obtiene 'guardar' o 'detalle'
+        console.log('🔍 Acción detectada (última parte de la ruta):', action);
 
         // --- Lógica para POST /usuarios/guardar ---
-        if (event.httpMethod === 'POST' && baseRoute === '/guardar') {
+        if (event.httpMethod === 'POST' && action === 'guardar') {
             console.log('📝 Procesando POST request para guardar usuario');
 
             if (!event.body) {
@@ -69,7 +62,7 @@ exports.handler = async (event, context) => {
             }
 
             // Lógica para guardar usuario en Firestore
-            await db.collection('usuarios').add(datosUsuario); //
+            await db.collection('usuarios').add(datosUsuario);
             console.log('✅ Usuario guardado correctamente');
             return {
                 statusCode: 201,
@@ -79,7 +72,7 @@ exports.handler = async (event, context) => {
         }
 
         // --- Lógica para GET /usuarios/detalle ---
-        if (event.httpMethod === 'GET' && baseRoute === '/detalle') {
+        if (event.httpMethod === 'GET' && action === 'detalle') {
             console.log('🔎 Procesando GET request para detalle de usuario');
             const dni = event.queryStringParameters ? event.queryStringParameters.iden : null;
 
@@ -93,7 +86,7 @@ exports.handler = async (event, context) => {
             }
 
             try {
-                const usuarioSnapshot = await db.collection('usuarios').where('dni', '==', dni).limit(1).get(); //
+                const usuarioSnapshot = await db.collection('usuarios').where('dni', '==', dni).limit(1).get();
                 if (usuarioSnapshot.empty) {
                     console.log('🤷‍♂️ Usuario no encontrado con DNI:', dni);
                     return {
@@ -136,7 +129,6 @@ exports.handler = async (event, context) => {
             body: JSON.stringify({
                 error: 'Error interno del servidor',
                 message: error.message,
-                // Solo muestra el stack trace en desarrollo, no en producción
                 debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
             })
         };
