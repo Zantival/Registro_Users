@@ -1,6 +1,5 @@
 [build]
-  command = "npm run build"
-  publish = "dist" # o "build" según tu estructura
+  publish = "."  # o la carpeta donde está tu index.html, como "public"
 
 [[redirects]]
   from = "/*"
