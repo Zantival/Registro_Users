@@ -57,7 +57,7 @@ async function guardar(event) {
         console.log("🔍 Enviando petición...");
 
         // Realizar petición fetch
-        const response = await fetch("/.netlify/functions/usuarios", {
+        const response = await fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -196,7 +196,7 @@ async function listar(event) {
             rtaElement.innerHTML = "⏳ Buscando usuario...";
         }
 
-        const response = await fetch(`/.netlify/functions/usuarios?iden=${encodeURIComponent(ndoc)}`, {
+        const response = await fetch(`https://registrousers.netlify.app/.netlify/functions/usuarios?iden=${encodeURIComponent(ndoc)}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
@@ -241,7 +241,7 @@ async function probarConexion() {
     try {
         console.log("🔍 Probando conexión con el servidor...");
 
-        const response = await fetch("/.netlify/functions/usuarios", {
+        const response = await fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", {
             method: "OPTIONS"
         });
 
