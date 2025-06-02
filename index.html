@@ -2,120 +2,223 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Usuarios</title>
-     <script type="text/javascript" src="./frontend/scriptusu.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --error-color: #e91e63;
+            --text-color: #333;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--text-color);
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 10px;
         }
 
-        form {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 400px;
-            margin: auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+
+        .card {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
         }
 
         input[type="text"],
         input[type="email"],
         input[type="password"] {
             width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border 0.3s ease;
         }
 
-        input[type="submit"],
-        button {
-            width: 48%;
-            padding: 10px;
-            margin-top: 10px;
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
             border: none;
-            border-radius: 6px;
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-        }
-
-        button {
-            background-color: #2196F3;
-            margin-left: 4%;
-        }
-
-        input[type="submit"]:hover,
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .mensaje {
             text-align: center;
-            margin-top: 20px;
-            color: #e91e63;
-            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
 
-        .buscar-container {
-            margin-top: 40px;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .response-area {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            background-color: #f8f9fa;
+            min-height: 50px;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .success-message {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+                margin-left: 0;
+            }
+            
+            .card {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1><i class="fas fa-user-plus"></i> Registrar Usuario</h1>
+        
+        <div class="card">
+            <form id="formUsuario">
+                <div class="form-group">
+                    <label for="dni"><i class="fas fa-id-card"></i> Documento de identidad:</label>
+                    <input type="text" id="dni" placeholder="Ingrese el documento" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nombre"><i class="fas fa-user"></i> Nombres:</label>
+                    <input type="text" id="nombre" placeholder="Ingrese los nombres" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="apellidos"><i class="fas fa-users"></i> Apellidos:</label>
+                    <input type="text" id="apellidos" placeholder="Ingrese los apellidos" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="correo"><i class="fas fa-envelope"></i> Email:</label>
+                    <input type="email" id="correo" placeholder="Ingrese el email" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" onclick="guardarUsuario()">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Limpiar
+                    </button>
+                </div>
+                
+                <div id="mensajeGuardar" class="response-area"></div>
+            </form>
+        </div>
+        
+        <h1><i class="fas fa-search"></i> Buscar Usuario</h1>
+        
+        <div class="card">
+            <form id="formBusqueda">
+                <div class="form-group">
+                    <label for="numdoc"><i class="fas fa-id-card"></i> Número de documento:</label>
+                    <input type="text" id="numdoc" placeholder="Ingrese el documento a buscar" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" onclick="buscarUsuario()">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+                
+                <div id="resultadoBusqueda" class="response-area">
+                    <p id="rta">Resultado aparecerá aquí...</p>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<h1>Adicionar Usuario</h1>
-<div>
-<form id="adicionarEstudiante">
-<div>
-<label for="dni">Documento de identidad:</label>
-<input type="text" id="dni" placeHolder="" value="000000">
-<br>
- 
-            <label for="nombre">Nombres:</label>
-<input type="text" id="nombre" placeHolder="">
-<br>
- 
-            <label for="apellidos">Apellidos:</label>
-<input type="text" id="apellidos" placeHolder="">
-<br>
- 
-            <label for="correo">Email:</label>
-<input type="text" id="correo" placeHolder="" value="">
-<br>
-<br>
-<br>
-<input type="submit" onclick="guardar()" value="Aceptar">
-</div>
-</form>
- 
-</div>
-<h1>Listar un usuario</h1>
-<div>
-<form id="listarEstudiantes">
-<label for="numdoc">Nombre del documento</label>
-<input type="text" id="numdoc">
-<p id="rta">Resultado:</p>
-<input type="submit" onclick="listar()" value="Aceptar">
-</form>
-</div>
-   
-    
+    <script src="./frontend/scriptusu.js"></script>
 </body>
 </html>
