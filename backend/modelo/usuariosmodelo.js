@@ -1,39 +1,65 @@
-const admin = require("firebase-admin");
-
 class UsuariosController {
-    constructor() {}
+  constructor() {}
 
-    async consultarDetalle(req, res) {
-        try {
-            let iden = req.query.iden;
-            const userDoc = await admin.firestore().collection('users').doc(iden).get();
+  async consultarDetalle(req, res) {
+    try {
+      const admin = require('./firebaseAdmin');
+      let iden = req.query.iden;
+      const userDoc = await admin.firestore().collection('users').doc(iden).get();
 
-            if (!userDoc.exists) {
-                return res.status(404).json({ message: 'Usuario no encontrado' });
-            }
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: 'Usuario no encontrado: ' + iden });
+      }
 
-            const userData = userDoc.data();
-            res.status(200).json(userData);
-        } catch (error) {
-            console.error('Error consultando detalle:', error);
-            res.status(500).json({ message: 'Error del servidor' });
-        }
+      const userData = userDoc.data();
+      return res.status(200).json(userData);
+    } catch (err) {
+      res.status(500).send(err.message);
     }
+  }
 
-    async ingresar(req, res) {
-        try {
-            const user = req.body;
-            if (!user.dni) {
-                return res.status(400).json({ message: "Falta el campo 'dni'" });
-            }
+  async ingresar(req, res) {
+    try {
+      console.log("✅ Datos recibidos procesados:", req.body);
 
-            await admin.firestore().collection('users').doc(user.dni).set(user);
-            res.status(200).json({ message: "Usuario registrado correctamente" });
-        } catch (error) {
-            console.error('Error ingresando usuario:', error);
-            res.status(500).json({ message: "Error del servidor" });
-        }
+      // Validación básica
+      if (typeof req.body !== 'object' || req.body === null || Array.isArray(req.body)) {
+        return res.status(400).send('Datos inválidos. Se esperaba un objeto plano.');
+      }
+
+      const admin = require('./firebaseAdmin');
+
+      // Crear objeto limpio con los datos
+      const userData = {
+        dni: req.body.dni || '',
+        nombre: req.body.nombre || '',
+        apellidos: req.body.apellidos || '',
+        email: req.body.email || '',
+        fechaCreacion: new Date().toISOString()
+      };
+
+      // Validación de campos requeridos
+      if (!userData.dni || !userData.nombre || !userData.email) {
+        console.log("❌ Campos faltantes:", { dni: userData.dni, nombre: userData.nombre, email: userData.email });
+        return res.status(400).send('Faltan campos requeridos: dni, nombre, email');
+      }
+
+      console.log("✅ Guardando usuario:", userData);
+
+      // Guardar en Firestore
+      const docRef = await admin.firestore().collection('users').add(userData);
+
+      console.log("✅ Usuario guardado con ID:", docRef.id);
+      res.status(200).json({ 
+        message: "Usuario agregado exitosamente", 
+        id: docRef.id 
+      });
+
+    } catch (err) {
+      console.error("❌ Error:", err);
+      res.status(500).send(err.message);
     }
+  }
 }
 
 module.exports = new UsuariosController();

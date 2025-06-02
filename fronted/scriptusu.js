@@ -1,165 +1,83 @@
-// Función para guardar usuario
-function guardar(event) {
+function guardar(){
+    let apellidos='';
+    let datoingresado = document.getElementById("correo").value;
+ 
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
     event.preventDefault();
-    
-    // Validar que todos los campos estén llenos
-    const nombre = document.getElementById("nombre").value.trim();
-    const apellido = document.getElementById("apellido").value.trim();
-    const correo = document.getElementById("correo").value.trim();
-    const contraseña = document.getElementById("contrasena").value.trim();
-    const dni = document.getElementById("dni").value.trim();
-    
-    // Verificar campos obligatorios
-    if (!nombre || !apellido || !correo || !contraseña || !dni) {
-        alert("Por favor, complete todos los campos");
-        return;
-    }
-    
-    // Validar formato de correo básico
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(correo)) {
-        alert("Por favor, ingrese un correo válido");
-        return;
-    }
-    
-    let datos = {
-        nombre: nombre,
-        apellido: apellido,
-        correo: correo,
-        contraseña: contraseña,
-        dni: dni
-    };
-    
-    // Mostrar indicador de carga
-    const mensajeElement = document.getElementById("mensaje");
-    if (mensajeElement) {
-        mensajeElement.textContent = "Guardando usuario...";
-    }
-    
-    fetch("https://registrousers.netlify.app/.netlify/functions/guardar", {
-        method: "POST",
-        body: JSON.stringify(datos),
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        alert(data.message || "Usuario guardado exitosamente");
-        document.getElementById("formularioUsuario").reset();
-        if (mensajeElement) {
-            mensajeElement.textContent = "Usuario guardado correctamente";
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        alert("Error al guardar el usuario: " + error.message);
-        if (mensajeElement) {
-            mensajeElement.textContent = "Error al guardar el usuario";
-        }
+
+    // ✅ DEBUGGING: Ver qué valores se están capturando
+    console.log("🔍 DEBUGGING - Valores capturados:");
+    console.log("DNI:", document.getElementById("dni").value);
+    console.log("Nombre:", document.getElementById("nombre").value);
+    console.log("Apellidos:", document.getElementById("apellidos").value);
+    console.log("Email:", document.getElementById("correo").value);
+ 
+    let raw = JSON.stringify({
+      "dni": document.getElementById("dni").value,
+      "nombre": document.getElementById("nombre").value,
+      "apellidos": document.getElementById("apellidos").value,
+      "email": document.getElementById("correo").value
     });
-}
 
-// Función para buscar usuario por DNI desde campo "dniBuscar"
-function listar(event) {
+    // ✅ DEBUGGING: Ver el JSON que se va a enviar
+    console.log("🔍 JSON a enviar:", raw);
+    console.log("🔍 Objeto parseado:", JSON.parse(raw));
+ 
+    let requestOptions = {
+      method: "POST",
+      headers: myHeaders
+      body: raw,
+      redirect: "follow"
+    };
+ 
+    console.log("🔍 Enviando petición...");
+    fetch("https:registrousers.netlify.app//.netlify/functions/usuarios", requestOptions)
+      .then((response) => {
+        console.log("🔍 Status de respuesta:", response.status);
+        return response.text();
+      })
+      .then((result) => {
+        console.log("🔍 Respuesta del servidor:", result);
+        if (result.includes("exitosamente")) {
+          alert("✅ Usuario guardado correctamente!");
+        } else {
+          alert("❌ Error: " + result);
+        }
+      })
+      .catch((error) => {
+        console.error("❌ Error en la petición:", error);
+        alert("❌ Error de conexión: " + error.message);
+      });  
+}
+ 
+function cargar(resultado){
+    let transformado = JSON.parse(resultado);
+    var salida="";
+    var elemento="";
+ 
+    for (const [clave, valor] of Object.entries(transformado)) {
+        //console.log(`${clave}: ${valor}`);
+        salida = "Clave=" + clave +  " Valor=" + valor + "<br>" + salida;
+    }
+    document.getElementById("rta").innerHTML = salida;
+}
+ 
+function listar(){
     event.preventDefault();
+    const requestOptions = {
+      method: "GET",
+      redirect: "follow"
+    };
+    let ndoc = document.getElementById("numdoc").value;
     
-    const id = document.getElementById("dniBuscar").value.trim();
-    
-    // Validar que se haya ingresado un DNI
-    if (!id) {
-        alert("Por favor, ingrese un DNI para buscar");
-        return;
-    }
-    
-    // Mostrar indicador de carga
-    const mensajeElement = document.getElementById("mensaje");
-    if (mensajeElement) {
-        mensajeElement.textContent = "Buscando usuario...";
-    }
-    
-    fetch(`https://registrousers.netlify.app/.netlify/functions/buscar?id=${encodeURIComponent(id)}`)
-        .then(response => {
-            if (!response.ok) {
-                if (response.status === 404) {
-                    throw new Error("Usuario no encontrado");
-                } else {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Verificar que los elementos existan antes de asignar valores
-            const nombreEl = document.getElementById("nombre");
-            const apellidoEl = document.getElementById("apellido");
-            const correoEl = document.getElementById("correo");
-            const contrasenaEl = document.getElementById("contrasena");
-            const dniEl = document.getElementById("dni");
-            
-            if (nombreEl) nombreEl.value = data.nombre || "";
-            if (apellidoEl) apellidoEl.value = data.apellido || "";
-            if (correoEl) correoEl.value = data.correo || "";
-            if (contrasenaEl) contrasenaEl.value = data.contraseña || "";
-            if (dniEl) dniEl.value = data.dni || "";
-            
-            if (mensajeElement) {
-                mensajeElement.textContent = "Usuario encontrado y cargado";
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            
-            // Limpiar campos en caso de error
-            const campos = ["nombre", "apellido", "correo", "contrasena", "dni"];
-            campos.forEach(campo => {
-                const elemento = document.getElementById(campo);
-                if (elemento) elemento.value = "";
-            });
-            
-            if (mensajeElement) {
-                mensajeElement.textContent = error.message;
-            }
-            
-            alert(error.message);
-        });
+    //usuarios?id=user124
+         //https://desarrolloseguro.netlify.app/.netlify/functions/usuarios
+    fetch("https://registrousers.netlify.app//.netlify/functions/usuarios?iden="+ndoc, requestOptions)
+      .then((response) =>
+        response.text())
+      .then((result) =>
+        cargar(result))
+      .catch((error) =>
+        console.error(error));
 }
-
-// Función para limpiar el formulario
-function limpiarFormulario() {
-    const formulario = document.getElementById("formularioUsuario");
-    if (formulario) {
-        formulario.reset();
-    }
-    
-    const mensajeElement = document.getElementById("mensaje");
-    if (mensajeElement) {
-        mensajeElement.textContent = "";
-    }
-}
-
-// Event listeners para cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    // Asignar evento al formulario de guardar
-    const formulario = document.getElementById("formularioUsuario");
-    if (formulario) {
-        formulario.addEventListener('submit', guardar);
-    }
-    
-    // Asignar evento al formulario de búsqueda
-    const formularioBuscar = document.getElementById("formularioBuscar");
-    if (formularioBuscar) {
-        formularioBuscar.addEventListener('submit', listar);
-    }
-    
-    // Botón de limpiar (opcional)
-    const btnLimpiar = document.getElementById("btnLimpiar");
-    if (btnLimpiar) {
-        btnLimpiar.addEventListener('click', limpiarFormulario);
-    }
-});
