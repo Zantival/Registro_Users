@@ -83,26 +83,23 @@
     <h1>Gestión de Usuarios</h1>
 
     <!-- Formulario de Registro de Usuario -->
-    <form id="formularioUsuario">
-        <input type="text" id="nombre" placeholder="Nombre" required>
-        <input type="text" id="apellido" placeholder="Apellido" required>
-        <input type="email" id="correo" placeholder="Correo" required>
-        <input type="password" id="contrasena" placeholder="Contraseña" required>
-        <input type="text" id="dni" placeholder="DNI" required>
+   <!-- Formulario para guardar -->
+<form id="formGuardar">
+    <input type="text" id="dni" placeholder="DNI" required>
+    <input type="text" id="nombre" placeholder="Nombre" required>
+    <input type="text" id="apellidos" placeholder="Apellidos" required>
+    <input type="email" id="correo" placeholder="Correo" required>
+    <button type="submit">Guardar</button>
+</form>
 
-        <div style="display: flex; justify-content: space-between;">
-            <input type="submit" value="Registrar">
-        </div>
-    </form>
+<!-- Formulario para buscar -->
+<form id="formListar">
+    <input type="text" id="numdoc" placeholder="Número de documento" required>
+    <button type="submit">Buscar</button>
+</form>
 
-    <!-- Formulario de Búsqueda por DNI -->
-    <div class="buscar-container">
-        <input type="text" id="dniBuscar" placeholder="Buscar por DNI" required>
-        <button type="button" onclick="listar(event)">Buscar</button>
-    </div>
-
-    <div class="mensaje" id="mensaje"></div>
-
+<!-- Div para mostrar resultados -->
+<div id="rta"></div>
    
     
 </body>
