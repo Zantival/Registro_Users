@@ -1,31 +1,3 @@
-const admin = require('firebase-admin');
-
-// Configuración de Firebase Admin
-const initializeFirebase = () => {
-  if (!admin.apps.length) {
-    try {
-      console.log('🔍 Inicializando Firebase...');
-      
-      // Verificar que las variables de entorno existen
-      if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-        throw new Error('FIREBASE_SERVICE_ACCOUNT no está definido');
-      }
-      
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-      });
-      
-      console.log('✅ Firebase Admin inicializado correctamente');
-    } catch (error) {
-      console.error('❌ Error al inicializar Firebase:', error.message);
-      throw error;
-    }
-  }
-  return admin;
-};
-
 exports.handler = async (event, context) => {
   console.log('🚀 Función iniciada');
   console.log('🔍 Evento completo:', JSON.stringify(event, null, 2));
@@ -51,7 +23,7 @@ exports.handler = async (event, context) => {
   try {
     console.log('🔍 Método HTTP:', event.httpMethod);
     console.log('🔍 Headers recibidos:', event.headers);
-    console.log('🔍 Body recibido:', event.body);
+    console.log('🔍 Body recibido:', event.body); // Imprime directamente event.body
     console.log('🔍 Tipo de body:', typeof event.body);
     console.log('🔍 Body length:', event.body ? event.body.length : 'N/A');
 
@@ -124,84 +96,12 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Crear objeto limpio
-      const userData = {
-        dni: requestBody.dni || '',
-        nombre: requestBody.nombre || '',
-        apellidos: requestBody.apellidos || '',
-        email: requestBody.email || '',
-        fechaCreacion: new Date().toISOString()
-      };
-
-      console.log('🔍 Datos procesados:', userData);
-
-      // Validar campos requeridos
-      if (!userData.dni || !userData.nombre || !userData.email) {
-        console.log('❌ Campos faltantes:', userData);
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ 
-            error: 'Faltan campos requeridos: dni, nombre, email',
-            received: userData 
-          })
-        };
-      }
-
-      console.log('✅ Validación pasada, guardando en Firebase...');
-
-      // Inicializar Firebase y guardar
-      const firebaseAdmin = initializeFirebase();
-      const db = firebaseAdmin.firestore();
-      const docRef = await db.collection('users').add(userData);
-      
-      console.log('✅ Usuario guardado con ID:', docRef.id);
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ 
-          success: true,
-          message: "Usuario agregado exitosamente", 
-          id: docRef.id,
-          data: userData
-        })
-      };
+      // Continúa con el resto de la lógica...
     }
 
     // GET - Consultar usuario
     if (event.httpMethod === 'GET') {
-      console.log('📖 Procesando GET request');
-      
-      const iden = event.queryStringParameters?.iden;
-      console.log('🔍 ID solicitado:', iden);
-      
-      if (!iden) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: 'Parámetro iden requerido' })
-        };
-      }
-
-      const firebaseAdmin = initializeFirebase();
-      const db = firebaseAdmin.firestore();
-      const userDoc = await db.collection('users').doc(iden).get();
-      
-      if (!userDoc.exists) {
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ error: 'Usuario no encontrado: ' + iden })
-        };
-      }
-
-      console.log('✅ Usuario encontrado');
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(userDoc.data())
-      };
+      // Lógica para GET
     }
 
     // Método no permitido
