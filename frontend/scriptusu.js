@@ -32,7 +32,7 @@ function guardar(){
     };
  
     console.log("🔍 Enviando petición...");
-    fetch("https://desarrolloseguro.netlify.app/.netlify/functions/usuarios", requestOptions)
+    fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", requestOptions)
       .then((response) => {
         console.log("🔍 Status de respuesta:", response.status);
         return response.text();
@@ -73,7 +73,7 @@ function listar(){
     
     //usuarios?id=user124
          //https://desarrolloseguro.netlify.app/.netlify/functions/usuarios
-    fetch("https://desarrolloseguro.netlify.app/.netlify/functions/usuarios?iden="+ndoc, requestOptions)
+    fetch("https://registrousers.netlify.app/.netlify/functions/usuarios?iden="+ndoc, requestOptions)
       .then((response) =>
         response.text())
       .then((result) =>
