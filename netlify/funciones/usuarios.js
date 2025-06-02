@@ -55,41 +55,6 @@ exports.handler = async (event, context) => {
     console.log('🔍 Tipo de body:', typeof event.body);
     console.log('🔍 Body length:', event.body ? event.body.length : 'N/A');
 
-    // GET - Consultar usuario
-    if (event.httpMethod === 'GET') {
-      console.log('📖 Procesando GET request');
-      
-      const iden = event.queryStringParameters?.iden;
-      console.log('🔍 ID solicitado:', iden);
-      
-      if (!iden) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: 'Parámetro iden requerido' })
-        };
-      }
-
-      const firebaseAdmin = initializeFirebase();
-      const db = firebaseAdmin.firestore();
-      const userDoc = await db.collection('users').doc(iden).get();
-      
-      if (!userDoc.exists) {
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ error: 'Usuario no encontrado: ' + iden })
-        };
-      }
-
-      console.log('✅ Usuario encontrado');
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(userDoc.data())
-      };
-    }
-
     // POST - Crear usuario
     if (event.httpMethod === 'POST') {
       console.log('📝 Procesando POST request');
@@ -111,11 +76,28 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Parsear JSON
+      // Parsear JSON con manejo seguro
       let requestBody;
       try {
         console.log('🔍 Intentando parsear JSON...');
-        requestBody = JSON.parse(event.body);
+        
+        // Caso 1: Es un objeto JS nativo (ya parseado)
+        if (typeof event.body === 'object' && !Array.isArray(event.body)) {
+          requestBody = event.body;
+        } 
+        // Caso 2: Es un string JSON normal
+        else if (typeof event.body === 'string') {
+          // Caso especial: viene como string dentro de string
+          if (event.body.trim().startsWith("{") || event.body.trim().startsWith("[")) {
+            requestBody = JSON.parse(event.body);
+          } else {
+            // Intentamos doble parseo por si viene escapado
+            requestBody = JSON.parse(JSON.parse(`"${event.body}"`));
+          }
+        } else {
+          throw new Error('Tipo de body desconocido: ' + typeof event.body);
+        }
+
         console.log('✅ JSON parseado correctamente:', requestBody);
       } catch (parseError) {
         console.error('❌ Error al parsear JSON:', parseError.message);
@@ -136,7 +118,9 @@ exports.handler = async (event, context) => {
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'Datos inválidos - se esperaba objeto JSON' })
+          body: JSON.stringify({ 
+            error: 'Datos inválidos - se esperaba objeto JSON' 
+          })
         };
       }
 
@@ -182,6 +166,41 @@ exports.handler = async (event, context) => {
           id: docRef.id,
           data: userData
         })
+      };
+    }
+
+    // GET - Consultar usuario
+    if (event.httpMethod === 'GET') {
+      console.log('📖 Procesando GET request');
+      
+      const iden = event.queryStringParameters?.iden;
+      console.log('🔍 ID solicitado:', iden);
+      
+      if (!iden) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Parámetro iden requerido' })
+        };
+      }
+
+      const firebaseAdmin = initializeFirebase();
+      const db = firebaseAdmin.firestore();
+      const userDoc = await db.collection('users').doc(iden).get();
+      
+      if (!userDoc.exists) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Usuario no encontrado: ' + iden })
+        };
+      }
+
+      console.log('✅ Usuario encontrado');
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(userDoc.data())
       };
     }
 
