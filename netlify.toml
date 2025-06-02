@@ -1,5 +1,0 @@
-[build]
-    functions = "netlify/funciones"
-    [build]
-  publish = "public"    # Netlify debe servir los archivos de esta carpeta
-  functions = "functions"
