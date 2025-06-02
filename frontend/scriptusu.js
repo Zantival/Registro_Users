@@ -2,123 +2,119 @@
 async function guardar(event) {
     event.preventDefault();
     
-    // Validación de campos
-    const dni = document.getElementById("dni").value.trim();
-    const nombre = document.getElementById("nombre").value.trim();
-    const apellidos = document.getElementById("apellidos").value.trim();
-    const email = document.getElementById("correo").value.trim();
+    // Validación de campos mejorada
+    const campos = {
+        dni: document.getElementById("dni").value.trim(),
+        nombre: document.getElementById("nombre").value.trim(),
+        apellidos: document.getElementById("apellidos").value.trim(),
+        email: document.getElementById("correo").value.trim()
+    };
 
-    // Verificar que todos los campos estén llenos
-    if (!dni || !nombre || !apellidos || !email) {
-        alert("❌ Todos los campos son obligatorios");
-        return;
+    // Validación completa
+    if (!Object.values(campos).every(Boolean)) {
+        return alert("❌ Todos los campos son obligatorios");
     }
 
-    // Validar formato de email simple
-    if (!email.includes('@') || !email.includes('.')) {
-        alert("❌ Por favor ingrese un email válido");
-        return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.email)) {
+        return alert("❌ Por favor ingrese un email válido");
     }
 
-    // Mostrar datos en consola para depuración
-    console.log("📤 Datos a enviar:", { dni, nombre, apellidos, email });
+    if (!/^\d+$/.test(campos.dni)) {
+        return alert("❌ El DNI debe contener solo números");
+    }
 
     try {
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "application/json");
-
         const response = await fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", {
             method: "POST",
-            headers: myHeaders,
-            body: JSON.stringify({
-                dni: dni,
-                nombre: nombre,
-                apellidos: apellidos,
-                email: email
-            }),
-            redirect: "follow"
+            headers: { 
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(campos)
         });
-
-        console.log("📥 Estado de la respuesta:", response.status);
 
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.error || "Error desconocido del servidor");
+            throw new Error(result.error || `Error del servidor: ${response.status}`);
         }
 
-        console.log("✅ Respuesta del servidor:", result);
-        alert("✔️ Usuario registrado exitosamente!");
+        alert(`✅ ${result.message || "Usuario registrado exitosamente!"}`);
+        event.target.reset(); // Limpiar formulario
         
-        // Opcional: Limpiar el formulario después del éxito
-        document.getElementById("dni").value = "";
-        document.getElementById("nombre").value = "";
-        document.getElementById("apellidos").value = "";
-        document.getElementById("correo").value = "";
-
     } catch (error) {
-        console.error("❌ Error en la petición:", error);
-        alert(`❌ Error al registrar usuario: ${error.message}`);
+        console.error("Error completo:", error);
+        alert(`❌ Error: ${error.message}`);
     }
 }
 
-// Función para cargar y mostrar datos
+// Función para cargar y mostrar datos mejorada
 function cargar(resultado) {
     try {
-        let transformado = JSON.parse(resultado);
-        let salida = "";
-
-        for (const [clave, valor] of Object.entries(transformado)) {
-            salida += `<div><strong>${clave}:</strong> ${valor}</div>`;
+        const datos = typeof resultado === 'string' ? JSON.parse(resultado) : resultado;
+        const contenedor = document.getElementById("rta");
+        
+        if (!datos || typeof datos !== 'object') {
+            contenedor.innerHTML = "<div class='error'>No se encontraron datos</div>";
+            return;
         }
 
-        document.getElementById("rta").innerHTML = salida || "No se encontraron datos";
+        contenedor.innerHTML = Object.entries(datos)
+            .map(([clave, valor]) => `
+                <div class="data-row">
+                    <span class="data-key">${clave}:</span>
+                    <span class="data-value">${valor || 'N/A'}</span>
+                </div>`
+            ).join('');
+            
     } catch (error) {
-        console.error("❌ Error al procesar respuesta:", error);
-        document.getElementById("rta").innerHTML = "❌ Error al mostrar los datos";
+        console.error("Error al mostrar datos:", error);
+        document.getElementById("rta").innerHTML = `
+            <div class="error">
+                Error al procesar los datos: ${error.message}
+            </div>`;
     }
 }
 
-// Función para listar usuarios
+// Función para listar usuarios optimizada
 async function listar(event) {
     event.preventDefault();
     
     const ndoc = document.getElementById("numdoc").value.trim();
-    
-    if (!ndoc) {
-        alert("❌ Por favor ingrese un número de documento");
-        return;
-    }
+    if (!ndoc) return alert("❌ Ingrese un número de documento");
 
     try {
-        const response = await fetch(`https://registrousers.netlify.app/.netlify/functions/usuarios?iden=${ndoc}`, {
-            method: "GET",
-            redirect: "follow"
-        });
+        const response = await fetch(
+            `https://registrousers.netlify.app/.netlify/functions/usuarios?dni=${encodeURIComponent(ndoc)}`, 
+            {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            }
+        );
 
         if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
 
-        const result = await response.text();
-        cargar(result);
+        cargar(await response.json());
+        
     } catch (error) {
-        console.error("❌ Error al obtener datos:", error);
-        document.getElementById("rta").innerHTML = "❌ Error al cargar los datos";
+        console.error("Error al obtener datos:", error);
+        document.getElementById("rta").innerHTML = `
+            <div class="error">
+                Error al cargar datos: ${error.message}
+            </div>`;
     }
 }
 
-// Asignar eventos (esto debe estar en tu código principal)
-document.addEventListener('DOMContentLoaded', function() {
-    // Asumiendo que tienes un formulario con id "formGuardar"
-    const formGuardar = document.getElementById("formGuardar");
-    if (formGuardar) {
-        formGuardar.addEventListener("submit", guardar);
-    }
+// Inicialización mejorada
+document.addEventListener('DOMContentLoaded', () => {
+    // Configuración de eventos con delegación
+    document.body.addEventListener('submit', (e) => {
+        if (e.target.id === 'formGuardar') guardar(e);
+    });
 
-    // Asumiendo que tienes un botón con id "btnListar"
-    const btnListar = document.getElementById("btnListar");
-    if (btnListar) {
-        btnListar.addEventListener("click", listar);
-    }
+    document.body.addEventListener('click', (e) => {
+        if (e.target.id === 'btnListar') listar(e);
+    });
 });
