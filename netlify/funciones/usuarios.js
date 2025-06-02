@@ -1,46 +1,149 @@
-var express = require('express');
-var cors = require("cors");
-var serverless = require('serverless-http');
-var app = express();
-var usuroutes = require("../../backend/routes/usuariosrutas.js");
+const admin = require('firebase-admin');
 
-// ✅ CONFIGURACIÓN CORRECTA DE MIDDLEWARES
-app.use(cors());
-
-// ✅ MIDDLEWARE PERSONALIZADO PARA MANEJAR EL BUFFER
-app.use('/.netlify/functions', (req, res, next) => {
-  // Si el body es un Buffer, convertirlo a string y parsearlo como JSON
-  if (Buffer.isBuffer(req.body) && req.headers['content-type'] === 'application/json') {
+// Configuración de Firebase Admin
+const initializeFirebase = () => {
+  if (!admin.apps.length) {
     try {
-      const bodyString = req.body.toString('utf8');
-      console.log('🔍 Buffer convertido a string:', bodyString);
-      req.body = JSON.parse(bodyString);
-      console.log('✅ JSON parseado correctamente:', req.body);
+      // Opción 1: Usar JSON completo de variable de entorno
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      
+      console.log('✅ Firebase Admin inicializado');
     } catch (error) {
-      console.error('❌ Error al parsear JSON:', error);
-      return res.status(400).json({ error: 'JSON inválido' });
+      console.error('❌ Error al inicializar Firebase:', error.message);
+      throw error;
     }
   }
-  next();
-});
+  return admin;
+};
 
-// ✅ MIDDLEWARES ESTÁNDAR (como respaldo)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+exports.handler = async (event, context) => {
+  // Configurar CORS
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+  };
 
-// ✅ DEBUGGING (opcional, puedes comentar después)
-app.use('/.netlify/functions', (req, res, next) => {
-  console.log('🔍 Método:', req.method);
-  console.log('🔍 URL:', req.url);
-  console.log('🔍 Body final procesado:', req.body);
-  console.log('🔍 Body type:', typeof req.body);
-  next();
-});
+  // Manejar preflight OPTIONS
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
 
-// ✅ RUTAS
-var router = express.Router();
-router.use("/usuarios", usuroutes);
-app.use('/.netlify/functions', router);
+  try {
+    console.log('🔍 Método HTTP:', event.httpMethod);
+    console.log('🔍 Datos recibidos:', event.body);
 
-// ✅ EXPORTAR
-exports.handler = serverless(app);
+    const firebaseAdmin = initializeFirebase();
+    const db = firebaseAdmin.firestore();
+
+    // GET - Consultar usuario
+    if (event.httpMethod === 'GET') {
+      const iden = event.queryStringParameters?.iden;
+      
+      if (!iden) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Parámetro iden requerido' })
+        };
+      }
+
+      const userDoc = await db.collection('users').doc(iden).get();
+      
+      if (!userDoc.exists) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Usuario no encontrado: ' + iden })
+        };
+      }
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(userDoc.data())
+      };
+    }
+
+    // POST - Crear usuario
+    if (event.httpMethod === 'POST') {
+      const requestBody = JSON.parse(event.body);
+      console.log('✅ Datos procesados:', requestBody);
+
+      // Validación básica
+      if (!requestBody || typeof requestBody !== 'object') {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Datos inválidos' })
+        };
+      }
+
+      // Crear objeto limpio
+      const userData = {
+        dni: requestBody.dni || '',
+        nombre: requestBody.nombre || '',
+        apellidos: requestBody.apellidos || '',
+        email: requestBody.email || '',
+        fechaCreacion: new Date().toISOString()
+      };
+
+      // Validar campos requeridos
+      if (!userData.dni || !userData.nombre || !userData.email) {
+        console.log('❌ Campos faltantes:', userData);
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ 
+            error: 'Faltan campos requeridos: dni, nombre, email',
+            received: userData 
+          })
+        };
+      }
+
+      console.log('✅ Guardando usuario:', userData);
+
+      // Guardar en Firestore
+      const docRef = await db.collection('users').add(userData);
+      
+      console.log('✅ Usuario guardado con ID:', docRef.id);
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ 
+          success: true,
+          message: "Usuario agregado exitosamente", 
+          id: docRef.id,
+          data: userData
+        })
+      };
+    }
+
+    // Método no permitido
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Método no permitido' })
+    };
+
+  } catch (error) {
+    console.error('❌ Error en función:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
+    };
+  }
+};
