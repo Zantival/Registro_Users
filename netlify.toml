@@ -1,2 +1,5 @@
 [build]
     functions = "netlify/funciones"
+    [functions]
+  timeout = 10
+  memory = 256
