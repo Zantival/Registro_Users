@@ -2,69 +2,171 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Gestión de Usuarios</title>
-  <script src="frontend/scriptusu.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Usuarios</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
       background-color: #f5f5f5;
     }
-
-    h1 {
-      text-align: center;
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    
+    h1, h2 {
       color: #333;
     }
-
-    form {
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    
+    .form-group {
+      margin-bottom: 15px;
     }
-
-    input[type="text"], input[type="email"] {
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    input[type="text"],
+    input[type="email"] {
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
-
+    
     button {
-      padding: 10px 20px;
-      background-color: #28a745;
+      background-color: #4CAF50;
       color: white;
+      padding: 10px 15px;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
       cursor: pointer;
+      font-size: 16px;
     }
-
-    #rta {
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    
+    button.eliminar {
+      background-color: #f44336;
+    }
+    
+    button.eliminar:hover {
+      background-color: #d32f2f;
+    }
+    
+    #errores-validacion {
+      color: #d9534f;
+      margin: 10px 0;
+    }
+    
+    .error-validacion {
+      padding: 5px;
+      margin: 5px 0;
+      border-left: 3px solid #d9534f;
+    }
+    
+    .usuario-card {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 4px;
       margin-top: 20px;
-      text-align: center;
+      border-left: 4px solid #4CAF50;
+    }
+    
+    .acciones-usuario {
+      margin-top: 15px;
+    }
+    
+    .notificacion {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px;
+      border-radius: 4px;
+      color: white;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      z-index: 1000;
+    }
+    
+    .notificacion.mostrar {
+      opacity: 1;
+    }
+    
+    .notificacion.success {
+      background-color: #4CAF50;
+    }
+    
+    .notificacion.error {
+      background-color: #f44336;
+    }
+    
+    .notificacion.info {
+      background-color: #2196F3;
     }
   </style>
 </head>
 <body>
-  <h1>Gestión de Usuarios</h1>
-  <form onsubmit="guardar(); return false;">
-    <input type="text" id="dni" placeholder="DNI" required>
-    <input type="text" id="nombre" placeholder="Nombre" required>
-    <input type="text" id="apellidos" placeholder="Apellidos" required>
-    <input type="email" id="correo" placeholder="Correo electrónico" required>
-    <button type="submit">Guardar Usuario</button>
-  </form>
+  <div class="container">
+    <h1>Sistema de Registro de Usuarios</h1>
+    
+    <section>
+      <h2>Registrar Nuevo Usuario</h2>
+      <form id="form-usuario">
+        <div class="form-group">
+          <label for="dni">DNI:</label>
+          <input type="text" id="dni" name="dni" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="nombre">Nombre:</label>
+          <input type="text" id="nombre" name="nombre" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="apellidos">Apellidos:</label>
+          <input type="text" id="apellidos" name="apellidos" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="correo">Email:</label>
+          <input type="email" id="correo" name="correo" required>
+        </div>
+        
+        <div id="errores-validacion"></div>
+        
+        <button type="submit">Registrar Usuario</button>
+      </form>
+    </section>
+    
+    <section>
+      <h2>Buscar Usuario</h2>
+      <form id="form-busqueda">
+        <div class="form-group">
+          <label for="buscar-dni">Ingrese DNI a buscar:</label>
+          <input type="text" id="buscar-dni" name="buscar-dni" required>
+        </div>
+        
+        <button type="submit">Buscar Usuario</button>
+      </form>
+      
+      <div id="resultado-usuario"></div>
+    </section>
+  </div>
 
-  <br><br>
-
-  <form onsubmit="listar(); return false;">
-    <input type="text" id="numdoc" placeholder="Buscar por DNI" required>
-    <button type="submit">Buscar Usuario</button>
-  </form>
-
-  <div id="rta"></div>
+  <script src="scriptusu.js"></script>
 </body>
 </html>
