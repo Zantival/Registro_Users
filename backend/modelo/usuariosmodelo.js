@@ -3,7 +3,7 @@ class UsuariosController {
 
   async consultarDetalle(req, res) {
     try {
-      const admin = require('./firebaseAdmin');
+      const admin = require('./firebaseAdmin.js');
       let iden = req.query.iden;
       const userDoc = await admin.firestore().collection('users').doc(iden).get();
 
@@ -27,7 +27,7 @@ class UsuariosController {
         return res.status(400).send('Datos inválidos. Se esperaba un objeto plano.');
       }
 
-      const admin = require('./firebaseAdmin');
+      const admin = require('./firebaseAdmin.js');
 
       // Crear objeto limpio con los datos
       const userData = {
