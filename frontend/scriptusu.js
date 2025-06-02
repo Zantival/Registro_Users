@@ -71,8 +71,7 @@ function listar(){
     };
     let ndoc = document.getElementById("numdoc").value;
     
-    //usuarios?id=user124
-         //https://desarrolloseguro.netlify.app/.netlify/functions/usuarios
+    //usuarios?id=user124s
     fetch("https://registrousers.netlify.app/.netlify/functions/usuarios?iden="+ndoc, requestOptions)
       .then((response) =>
         response.text())
