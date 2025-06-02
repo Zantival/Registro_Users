@@ -39,7 +39,11 @@ exports.handler = async (event, context) => {
 
   try {
     console.log('🔍 Método HTTP:', event.httpMethod);
+    console.log('🔍 Headers:', event.headers);
     console.log('🔍 Datos recibidos:', event.body);
+    console.log('🔍 Tipo de body:', typeof event.body);
+    console.log('🔍 Body es null?', event.body === null);
+    console.log('🔍 Body es undefined?', event.body === undefined);
 
     const firebaseAdmin = initializeFirebase();
     const db = firebaseAdmin.firestore();
@@ -75,7 +79,33 @@ exports.handler = async (event, context) => {
 
     // POST - Crear usuario
     if (event.httpMethod === 'POST') {
-      const requestBody = JSON.parse(event.body);
+      console.log('🔍 event.body recibido:', event.body);
+      console.log('🔍 Tipo de event.body:', typeof event.body);
+      
+      if (!event.body) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'No se recibieron datos en el body' })
+        };
+      }
+
+      let requestBody;
+      try {
+        requestBody = JSON.parse(event.body);
+      } catch (parseError) {
+        console.error('❌ Error al parsear JSON:', parseError.message);
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ 
+            error: 'JSON inválido', 
+            received: event.body,
+            parseError: parseError.message 
+          })
+        };
+      }
+      
       console.log('✅ Datos procesados:', requestBody);
 
       // Validación básica
