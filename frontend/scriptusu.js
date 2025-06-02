@@ -1,12 +1,10 @@
 console.log('🚀 Script cargado correctamente');
 
 // Función para guardar usuario
-async function guardar() {
+async function guardar(event) {
     try {
         // Prevenir comportamiento por defecto del formulario
-        if (event) {
-            event.preventDefault();
-        }
+        if (event) event.preventDefault();
 
         console.log("🔍 DEBUGGING - Iniciando proceso de guardado");
 
@@ -38,14 +36,15 @@ async function guardar() {
 
         // Crear objeto de datos
         const userData = {
-            dni: dni,
-            nombre: nombre,
-            apellidos: apellidos,
-            email: email
+            dni,
+            nombre,
+            apellidos,
+            email
         };
 
         // ✅ DEBUGGING: Ver el JSON que se va a enviar
-        console.log("🔍 JSON a enviar:", JSON.stringify(userData));
+        const jsonToSend = JSON.stringify(userData);
+        console.log("🔍 JSON a enviar:", jsonToSend);
         console.log("🔍 Objeto parseado:", userData);
 
         // Mostrar mensaje de carga
@@ -58,12 +57,12 @@ async function guardar() {
         console.log("🔍 Enviando petición...");
 
         // Realizar petición fetch
-        const response = await fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", {
+        const response = await fetch("/.netlify/functions/usuarios", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify(userData)
+            body: jsonToSend
         });
 
         console.log("🔍 Status de respuesta:", response.status);
@@ -73,7 +72,6 @@ async function guardar() {
         const responseText = await response.text();
         console.log("🔍 Respuesta del servidor (raw):", responseText);
 
-        // Intentar parsear como JSON
         let result;
         try {
             result = JSON.parse(responseText);
@@ -86,39 +84,39 @@ async function guardar() {
         // Verificar si la respuesta fue exitosa
         if (response.ok) {
             console.log("✅ Usuario guardado exitosamente");
-            
+
             // Mostrar mensaje de éxito
             if (messageDiv) {
                 messageDiv.textContent = "✅ Usuario guardado correctamente!";
                 messageDiv.style.color = "green";
             }
-            
+
             alert("✅ Usuario guardado correctamente!");
-            
+
             // Limpiar formulario
             limpiarFormulario();
-            
+
         } else {
             // Error del servidor
             console.error("❌ Error del servidor:", result);
-            
+
             if (messageDiv) {
                 messageDiv.textContent = `❌ Error: ${result.error || 'Error desconocido'}`;
                 messageDiv.style.color = "red";
             }
-            
+
             alert(`❌ Error: ${result.error || 'Error desconocido'}`);
         }
 
     } catch (error) {
         console.error("❌ Error en la petición:", error);
-        
+
         const messageDiv = document.getElementById("message");
         if (messageDiv) {
             messageDiv.textContent = `❌ Error de conexión: ${error.message}`;
             messageDiv.style.color = "red";
         }
-        
+
         alert(`❌ Error de conexión: ${error.message}`);
     }
 }
@@ -139,16 +137,16 @@ function limpiarFormulario() {
 function cargar(resultado) {
     try {
         console.log("🔍 Cargando resultado:", resultado);
-        
+
         let transformado;
         if (typeof resultado === 'string') {
             transformado = JSON.parse(resultado);
         } else {
             transformado = resultado;
         }
-        
+
         let salida = "";
-        
+
         // Verificar si hay error en la respuesta
         if (transformado.error) {
             salida = `<div style="color: red;">❌ Error: ${transformado.error}</div>`;
@@ -158,14 +156,14 @@ function cargar(resultado) {
                 salida += `<div><strong>${clave}:</strong> ${valor}</div>`;
             }
         }
-        
+
         const rtaElement = document.getElementById("rta");
         if (rtaElement) {
             rtaElement.innerHTML = salida;
         }
-        
+
         console.log("✅ Datos cargados en la interfaz");
-        
+
     } catch (error) {
         console.error("❌ Error al cargar datos:", error);
         const rtaElement = document.getElementById("rta");
@@ -176,17 +174,15 @@ function cargar(resultado) {
 }
 
 // Función para listar/buscar usuario
-async function listar() {
+async function listar(event) {
     try {
         // Prevenir comportamiento por defecto
-        if (event) {
-            event.preventDefault();
-        }
+        if (event) event.preventDefault();
 
         console.log("🔍 Iniciando búsqueda de usuario");
 
         const ndoc = document.getElementById("numdoc").value.trim();
-        
+
         if (!ndoc) {
             alert("❌ Por favor ingresa un número de documento");
             return;
@@ -200,7 +196,7 @@ async function listar() {
             rtaElement.innerHTML = "⏳ Buscando usuario...";
         }
 
-        const response = await fetch(`https://registrousers.netlify.app/.netlify/functions/usuarios?iden=${encodeURIComponent(ndoc)}`, {
+        const response = await fetch(`/.netlify/functions/usuarios?iden=${encodeURIComponent(ndoc)}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
@@ -222,17 +218,17 @@ async function listar() {
             } catch {
                 errorData = { error: responseText };
             }
-            
+
             if (rtaElement) {
                 rtaElement.innerHTML = `<div style="color: red;">❌ ${errorData.error || 'Usuario no encontrado'}</div>`;
             }
-            
+
             console.log("❌ Usuario no encontrado o error:", errorData);
         }
 
     } catch (error) {
         console.error("❌ Error en la búsqueda:", error);
-        
+
         const rtaElement = document.getElementById("rta");
         if (rtaElement) {
             rtaElement.innerHTML = `<div style="color: red;">❌ Error de conexión: ${error.message}</div>`;
@@ -244,13 +240,13 @@ async function listar() {
 async function probarConexion() {
     try {
         console.log("🔍 Probando conexión con el servidor...");
-        
-        const response = await fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", {
+
+        const response = await fetch("/.netlify/functions/usuarios", {
             method: "OPTIONS"
         });
-        
+
         console.log("🔍 Status de conexión:", response.status);
-        
+
         if (response.ok) {
             console.log("✅ Conexión exitosa con el servidor");
             return true;
@@ -258,7 +254,7 @@ async function probarConexion() {
             console.log("❌ Problema de conexión");
             return false;
         }
-        
+
     } catch (error) {
         console.error("❌ Error de conexión:", error);
         return false;
@@ -266,23 +262,23 @@ async function probarConexion() {
 }
 
 // Inicialización cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log("📄 DOM cargado completamente");
-    
+
     // Opcional: probar conexión al cargar
     // probarConexion();
-    
+
     // Agregar event listeners a los formularios si existen
     const formGuardar = document.getElementById("formGuardar");
     if (formGuardar) {
-        formGuardar.addEventListener("submit", guardar);
+        formGuardar.addEventListener("submit", (e) => guardar(e));
     }
-    
+
     const formBuscar = document.getElementById("formBuscar");
     if (formBuscar) {
-        formBuscar.addEventListener("submit", listar);
+        formBuscar.addEventListener("submit", (e) => listar(e));
     }
-    
+
     console.log("✅ Event listeners configurados");
 });
 
