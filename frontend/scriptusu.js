@@ -27,7 +27,7 @@ async function guardar(event) {
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
 
-        const response = await fetch("https://registrouaers.netlify.app/.netlify/functions/usuarios", {
+        const response = await fetch("https://registrousers.netlify.app/.netlify/functions/usuarios", {
             method: "POST",
             headers: myHeaders,
             body: JSON.stringify({
@@ -91,7 +91,7 @@ async function listar(event) {
     }
 
     try {
-        const response = await fetch(`https://registrouaers.netlify.app/.netlify/functions/usuarios?iden=${ndoc}`, {
+        const response = await fetch(`https://registrousers.netlify.app/.netlify/functions/usuarios?iden=${ndoc}`, {
             method: "GET",
             redirect: "follow"
         });
