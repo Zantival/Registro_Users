@@ -4,14 +4,20 @@ const admin = require('firebase-admin');
 const initializeFirebase = () => {
   if (!admin.apps.length) {
     try {
-      // Opción 1: Usar JSON completo de variable de entorno
+      console.log('🔍 Inicializando Firebase...');
+      
+      // Verificar que las variables de entorno existen
+      if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT no está definido');
+      }
+      
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
       
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
       
-      console.log('✅ Firebase Admin inicializado');
+      console.log('✅ Firebase Admin inicializado correctamente');
     } catch (error) {
       console.error('❌ Error al inicializar Firebase:', error.message);
       throw error;
@@ -21,36 +27,40 @@ const initializeFirebase = () => {
 };
 
 exports.handler = async (event, context) => {
+  console.log('🚀 Función iniciada');
+  console.log('🔍 Evento completo:', JSON.stringify(event, null, 2));
+  
   // Configurar CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Content-Type': 'application/json'
   };
 
   // Manejar preflight OPTIONS
   if (event.httpMethod === 'OPTIONS') {
+    console.log('📋 Manejando preflight OPTIONS');
     return {
       statusCode: 200,
       headers,
-      body: ''
+      body: JSON.stringify({ message: 'CORS preflight' })
     };
   }
 
   try {
     console.log('🔍 Método HTTP:', event.httpMethod);
-    console.log('🔍 Headers:', event.headers);
-    console.log('🔍 Datos recibidos:', event.body);
+    console.log('🔍 Headers recibidos:', event.headers);
+    console.log('🔍 Body recibido:', event.body);
     console.log('🔍 Tipo de body:', typeof event.body);
-    console.log('🔍 Body es null?', event.body === null);
-    console.log('🔍 Body es undefined?', event.body === undefined);
-
-    const firebaseAdmin = initializeFirebase();
-    const db = firebaseAdmin.firestore();
+    console.log('🔍 Body length:', event.body ? event.body.length : 'N/A');
 
     // GET - Consultar usuario
     if (event.httpMethod === 'GET') {
+      console.log('📖 Procesando GET request');
+      
       const iden = event.queryStringParameters?.iden;
+      console.log('🔍 ID solicitado:', iden);
       
       if (!iden) {
         return {
@@ -60,6 +70,8 @@ exports.handler = async (event, context) => {
         };
       }
 
+      const firebaseAdmin = initializeFirebase();
+      const db = firebaseAdmin.firestore();
       const userDoc = await db.collection('users').doc(iden).get();
       
       if (!userDoc.exists) {
@@ -70,6 +82,7 @@ exports.handler = async (event, context) => {
         };
       }
 
+      console.log('✅ Usuario encontrado');
       return {
         statusCode: 200,
         headers,
@@ -79,22 +92,34 @@ exports.handler = async (event, context) => {
 
     // POST - Crear usuario
     if (event.httpMethod === 'POST') {
-      console.log('🔍 event.body recibido:', event.body);
-      console.log('🔍 Tipo de event.body:', typeof event.body);
+      console.log('📝 Procesando POST request');
       
+      // Verificar si hay body
       if (!event.body) {
+        console.error('❌ No hay body en la petición');
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'No se recibieron datos en el body' })
+          body: JSON.stringify({ 
+            error: 'No se recibió body en la petición',
+            debug: {
+              method: event.httpMethod,
+              headers: event.headers,
+              hasBody: !!event.body
+            }
+          })
         };
       }
 
+      // Parsear JSON
       let requestBody;
       try {
+        console.log('🔍 Intentando parsear JSON...');
         requestBody = JSON.parse(event.body);
+        console.log('✅ JSON parseado correctamente:', requestBody);
       } catch (parseError) {
         console.error('❌ Error al parsear JSON:', parseError.message);
+        console.error('❌ Body que causó el error:', event.body);
         return {
           statusCode: 400,
           headers,
@@ -105,15 +130,13 @@ exports.handler = async (event, context) => {
           })
         };
       }
-      
-      console.log('✅ Datos procesados:', requestBody);
 
       // Validación básica
       if (!requestBody || typeof requestBody !== 'object') {
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'Datos inválidos' })
+          body: JSON.stringify({ error: 'Datos inválidos - se esperaba objeto JSON' })
         };
       }
 
@@ -125,6 +148,8 @@ exports.handler = async (event, context) => {
         email: requestBody.email || '',
         fechaCreacion: new Date().toISOString()
       };
+
+      console.log('🔍 Datos procesados:', userData);
 
       // Validar campos requeridos
       if (!userData.dni || !userData.nombre || !userData.email) {
@@ -139,9 +164,11 @@ exports.handler = async (event, context) => {
         };
       }
 
-      console.log('✅ Guardando usuario:', userData);
+      console.log('✅ Validación pasada, guardando en Firebase...');
 
-      // Guardar en Firestore
+      // Inicializar Firebase y guardar
+      const firebaseAdmin = initializeFirebase();
+      const db = firebaseAdmin.firestore();
       const docRef = await db.collection('users').add(userData);
       
       console.log('✅ Usuario guardado con ID:', docRef.id);
@@ -159,20 +186,23 @@ exports.handler = async (event, context) => {
     }
 
     // Método no permitido
+    console.log('❌ Método no permitido:', event.httpMethod);
     return {
       statusCode: 405,
       headers,
-      body: JSON.stringify({ error: 'Método no permitido' })
+      body: JSON.stringify({ error: 'Método no permitido: ' + event.httpMethod })
     };
 
   } catch (error) {
-    console.error('❌ Error en función:', error);
+    console.error('💥 Error crítico en función:', error);
+    console.error('💥 Stack trace:', error.stack);
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
-        error: error.message,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        error: 'Error interno del servidor',
+        message: error.message,
+        debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
       })
     };
   }
