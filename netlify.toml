@@ -1,7 +1,0 @@
-[build]
-  publish = "."  # o la carpeta donde está tu index.html, como "public"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
