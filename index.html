@@ -1,106 +1,70 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Gestión de Usuarios</title>
-     <script src="frontend/scriptusu.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f5f5f5;
-        }
+  <meta charset="UTF-8">
+  <title>Gestión de Usuarios</title>
+  <script src="frontend/scriptusu.js" defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f5f5f5;
+    }
 
-        h1 {
-            text-align: center;
-            color: #333;
-        }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
 
-        form {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 400px;
-            margin: auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+    form {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
 
-        input[type="submit"],
-        button {
-            width: 48%;
-            padding: 10px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 6px;
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
+    button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-        button {
-            background-color: #2196F3;
-            margin-left: 4%;
-        }
-
-        input[type="submit"]:hover,
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .mensaje {
-            text-align: center;
-            margin-top: 20px;
-            color: #e91e63;
-            font-weight: bold;
-        }
-
-        .buscar-container {
-            margin-top: 40px;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-    </style>
+    #rta {
+      margin-top: 20px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-
-    <h1>Gestión de Usuarios</h1>
-
-    <!-- Formulario de Registro de Usuario -->
-   <!-- Formulario para guardar -->
-<form id="formGuardar">
+  <h1>Gestión de Usuarios</h1>
+  <form onsubmit="guardar(); return false;">
     <input type="text" id="dni" placeholder="DNI" required>
     <input type="text" id="nombre" placeholder="Nombre" required>
     <input type="text" id="apellidos" placeholder="Apellidos" required>
-    <input type="email" id="correo" placeholder="Correo" required>
-    <button type="submit">Guardar</button>
-</form>
+    <input type="email" id="correo" placeholder="Correo electrónico" required>
+    <button type="submit">Guardar Usuario</button>
+  </form>
 
-<!-- Formulario para buscar -->
-<form id="formListar">
-    <input type="text" id="numdoc" placeholder="Número de documento" required>
-    <button type="submit">Buscar</button>
-</form>
+  <br><br>
 
-<!-- Div para mostrar resultados -->
-<div id="rta"></div>
-   
-    
+  <form onsubmit="listar(); return false;">
+    <input type="text" id="numdoc" placeholder="Buscar por DNI" required>
+    <button type="submit">Buscar Usuario</button>
+  </form>
+
+  <div id="rta"></div>
 </body>
 </html>
